@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會議紀錄轉錄工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #e0e0e0;
+        }
+        
+        .btn-download {
+            background: #48bb78;
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-download:hover:not(:disabled) {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status.show {
+            display: block;
+        }
+        
+        .status.info {
+            border-left-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .status.success {
+            border-left-color: #48bb78;
+            background: #f0fdf4;
+        }
+        
+        .status.error {
+            border-left-color: #f56565;
+            background: #fef2f2;
+        }
+        
+        .status-text {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+        
+        .result-section.show {
+            display: block;
+        }
+        
+        .result-box {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .result-box h3 {
+            font-size: 14px;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .result-box p {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .config-editor {
+            display: none;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        
+        .config-editor.show {
+            display: block;
+        }
+        
+        .config-editor textarea {
+            width: 100%;
+            height: 300px;
+            padding: 12px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            resize: none;
+        }
+        
+        .config-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .config-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-save {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-save:hover {
+            background: #38a169;
+        }
+        
+        .btn-cancel {
+            background: #cbd5e0;
+            color: #333;
+        }
+        
+        .btn-cancel:hover {
+            background: #a0aec0;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 會議紀錄轉錄</h1>
+        <p class="subtitle">轉錄、修正、摘要一鍵完成</p>
+        
+        <div class="button-group">
+            <button class="btn btn-secondary" id="configBtn">⚙️ 打開設定</button>
+            <button class="btn btn-primary" id="audioBtn">🎤 音檔轉逐字稿+摘要</button>
+            <button class="btn btn-primary" id="videoBtn">🎬 影片轉逐字稿+摘要</button>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">處理中...</p>
+        </div>
+        
+        <div class="config-editor" id="configEditor">
+            <textarea id="configText"></textarea>
+            <div class="config-buttons">
+                <button class="btn-save" id="saveConfigBtn">✓ 保存</button>
+                <button class="btn-cancel" id="cancelConfigBtn">✗ 取消</button>
+            </div>
+        </div>
+        
+        <div class="result-section" id="resultSection">
+            <div class="download-buttons">
+                <button class="btn btn-download" id="downloadTranscriptBtn">⬇️ 下載逐字稿</button>
+                <button class="btn btn-download" id="downloadSummaryBtn">⬇️ 下載摘要</button>
+            </div>
+            
+            <div class="result-box">
+                <h3>逐字稿</h3>
+                <p id="transcriptResult"></p>
+            </div>
+            <div class="result-box">
+                <h3>摘要</h3>
+                <p id="summaryResult"></p>
+            </div>
+        </div>
+        
+        <input type="file" id="audioInput" accept="audio/*">
+        <input type="file" id="videoInput" accept="video/*">
+    </div>
+    
+    <script>
+        const configBtn = document.getElementById('configBtn');
+        const audioBtn = document.getElementById('audioBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const configEditor = document.getElementById('configEditor');
+        const configText = document.getElementById('configText');
+        const saveConfigBtn = document.getElementById('saveConfigBtn');
+        const cancelConfigBtn = document.getElementById('cancelConfigBtn');
+        const audioInput = document.getElementById('audioInput');
+        const videoInput = document.getElementById('videoInput');
+        const status = document.getElementById('status');
+        const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
+        const resultSection = document.getElementById('resultSection');
+        const transcriptResult = document.getElementById('transcriptResult');
+        const summaryResult = document.getElementById('summaryResult');
+        const downloadTranscriptBtn = document.getElementById('downloadTranscriptBtn');
+        const downloadSummaryBtn = document.getElementById('downloadSummaryBtn');
+        
+        // 顯示狀態訊息
+        function showStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = `status show ${type}`;
+        }
+        
+        function hideStatus() {
+            status.classList.remove('show');
+        }
+        
+        function showLoading(text) {
+            loadingText.textContent = text;
+            loading.classList.add('show');
+        }
+        
+        function hideLoading() {
+            loading.classList.remove('show');
+        }
+        
+        // 下載文件
+        function downloadFile(fileType) {
+            const url = `/api/download/${fileType}`;
+            const link = document.createElement('a');
+            link.href = url;
+            link.click();
+        }
+        
+        // 下載按鈕事件
+        downloadTranscriptBtn.addEventListener('click', () => {
+            downloadFile('transcript');
+        });
+        
+        downloadSummaryBtn.addEventListener('click', () => {
+            downloadFile('summary');
+        });
+        
+        // 打開設定
+        configBtn.addEventListener('click', async () => {
+            const response = await fetch('/api/config');
+            const config = await response.json();
+            configText.value = JSON.stringify(config, null, 2);
+            configEditor.classList.add('show');
+        });
+        
+        // 保存設定
+        saveConfigBtn.addEventListener('click', async () => {
+            const config = JSON.parse(configText.value);
+            const response = await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            
+            if (response.ok) {
+                showStatus('設定已保存', 'success');
+                configEditor.classList.remove('show');
+                setTimeout(hideStatus, 2000);
+            }
+        });
+        
+        // 取消設定
+        cancelConfigBtn.addEventListener('click', () => {
+            configEditor.classList.remove('show');
+        });
+        
+        // 音檔處理
+        audioBtn.addEventListener('click', () => {
+            audioInput.click();
+        });
+        
+        audioInput.addEventListener('change', (e) => {
+            processFile(e.target.files[0], 'audio');
+        });
+        
+        // 影片處理
+        videoBtn.addEventListener('click', () => {
+            videoInput.click();
+        });
+        
+        videoInput.addEventListener('change', (e) => {
+            processFile(e.target.files[0], 'video');
+        });
+        
+        // 處理文件
+        async function processFile(file, type) {
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', type);
+            
+            const typeName = type === 'audio' ? '音檔' : '影片';
+            showLoading(`正在處理${typeName}...`);
+            hideStatus();
+            resultSection.classList.remove('show');
+            
+            const response = await fetch('/api/process', {
+                method: 'POST',
+                body: formData
+            });
+            
+            hideLoading();
+            
+            if (response.ok) {
+                const result = await response.json();
+                transcriptResult.textContent = result.transcript;
+                summaryResult.textContent = result.summary;
+                resultSection.classList.add('show');
+                showStatus(`${typeName}已成功處理`, 'success');
+            } else {
+                showStatus(`處理${typeName}時出錯`, 'error');
+            }
+        }
+        // --- 新增心跳發送邏輯 ---
+        function sendHeartbeat() {
+        fetch('/api/heartbeat', { method: 'POST' })
+            .catch(err => console.log('心跳發送失敗 (可能伺服器已關閉):', err));
+        }
+        // 每 3 秒發送一次心跳
+        setInterval(sendHeartbeat, 3000);
+    
+        // 頁面加載時立即發送一次
+        sendHeartbeat();
+    </script>
+</body>
+</html>

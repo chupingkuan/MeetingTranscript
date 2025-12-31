@@ -1,0 +1,9 @@
+{
+  "gemini_api_key": "AIzaSyD_5YcAE9oIe9dEW_02bPmoLp87Si5hiOw",
+  "gemini_model": "gemini-2.5-flash",
+  "output_filename": "transcript",
+  "prompts": {
+    "error_correction": "請修正以下逐字稿中的基本錯誤（如標點符號、重複詞彙、明顯的語法錯誤），保持原意不變，直接返回修正後的完整文本，不需要額外說明：",
+    "summary": "請用繁體中文為以下會議記錄製作摘要，包含：\n1. 會議要點（3-5個重點）\n2. 決議和行動項目\n3. 下次會議建議時間\n\n請直接返回摘要內容，格式清晰即可："
+  }
+}
